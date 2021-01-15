@@ -1,3 +1,8 @@
+# 1. Brush up on SQLite
+# 2. Demonstrate sqlite3 module
+# 3. Work on helper functions / Bank back-end
+# 4. What's the name of your bank?
+
 from decimal import Decimal
 import sqlite3
 
