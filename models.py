@@ -1,14 +1,16 @@
+from datetime import datetime
 from decimal import Decimal
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import relationship, Session
 from sqlalchemy import create_engine, Column, ForeignKey, Integer, String
+from typing import Union
 
 Base = automap_base()
 
 
 # SKIP 1: CLASSES
-class User(Base):
-    __tablename__ = 'users'
+class Account(Base):
+    __tablename__ = 'accounts'
 
     # SKIP 3 ###################################################################
     _balance = Column('balance', String)
@@ -19,19 +21,56 @@ class User(Base):
     ############################################################################
 
     def __repr__(self):
-        return f'<User \'{self.name}\' (${self.balance:,.2f})>'
+        return f'<Account \'{self.name}\' (${self.balance:,.2f})>'
 
     # SKIP 3 ###################################################################
     @property
-    def balance(self):
+    def balance(self) -> Decimal:
+        """ Gets this user's balance as a Decimal object.
+        """
         return Decimal(self._balance)
     ############################################################################
 
     # SKIP 4 ###################################################################
+    def update_card(self, card_number: str) -> bool:
+        """ Updates the card number on file.
+
+            :param card_number: The new card number to use.
+
+            :returns: Whether the action was successful.
+        """
+        if isinstance(card_number, str):
+            self.card = card_number
+            session.commit()
+            return True
+        return False
+
+    def log_transaction(self, amount: Decimal, recipient: str, date=None) \
+            -> 'Transaction':
+        """ Creates a new transaction object belonging to this user. This method
+            does not transfer funds and assumes this has already been done.
+
+            :param amount: The amount of money transferred.
+            :param recipient: The recipient's display name.
+            :param date: When this transaction took place in UTC. Defaults to
+                now.
+
+            :returns: The transaction object if successful.
+        """
+        date = date or datetime.utcnow()
+        new_trans = Transaction(_amount=str(amount), recipient=recipient,
+                                account=self, date=date)
+        session.add(new_trans)
+        session.commit()
+        return new_trans
+
     @classmethod
-    def create(cls, name, email, password, card=None):
-        new_user = User(name=name, email=email, password=email, card=card,
-                        _balance="0.00")
+    def create(cls, name: str, email: str, password: str,
+               card: Union[str, None] = None) -> 'Account':
+        """ Creates a new Account object.
+        """
+        new_user = Account(name=name, email=email, password=email, card=card,
+                           _balance="0.00")
         session.add(new_user)
         session.commit()
         return new_user
@@ -45,8 +84,8 @@ class Transaction(Base):
     ############################################################################
 
     # SKIP 2 ###################################################################
-    account_ID = Column('account', Integer, ForeignKey('users.id'))
-    account = relationship(User, foreign_keys=account_ID)
+    account_ID = Column('account_id', Integer, ForeignKey('accounts.id'))
+    account = relationship(Account, foreign_keys=account_ID)
     ############################################################################
 
     def __repr__(self):
@@ -63,10 +102,10 @@ engine = create_engine('sqlite:///bank.db')
 Base.prepare(engine, reflect=True)
 
 # UNSKIP 1 #####################################################################
-# User, Transaction = User, Base.classes.transaction
+# Account, Transaction = Base.classes.account, Base.classes.transaction
 ################################################################################
 
 session = Session(engine)
 
-jake, ishai, chris = users = session.query(User).all()
-print(*users)
+jake, ishai, chris = accounts = session.query(Account).all()
+print(*accounts)
