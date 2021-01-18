@@ -1,5 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
+from passlib.hash import pbkdf2_sha256
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import relationship, Session
 from sqlalchemy import create_engine, Column, ForeignKey, Integer, String
@@ -8,22 +9,16 @@ from typing import Union
 Base = automap_base()
 
 
-# SKIP 1: CLASSES
 class Account(Base):
     __tablename__ = 'accounts'
 
-    # SKIP 3 ###################################################################
     _balance = Column('balance', String)
-    ############################################################################
 
-    # SKIP 2 ###################################################################
     transactions = relationship('Transaction')
-    ############################################################################
 
     def __repr__(self):
         return f'<Account \'{self.name}\' (${self.balance:,.2f})>'
 
-    # SKIP 3 ###################################################################
     @property
     def balance(self) -> Decimal:
         """ Gets this user's balance as a Decimal object.
@@ -39,9 +34,7 @@ class Account(Base):
             self._balance = value
             return True
         raise TypeError('Account.balance must be of type string or Decimal.')
-    ############################################################################
 
-    # SKIP 4 ###################################################################
     def update_card(self, card_number: str) -> bool:
         """ Updates the card number on file.
 
@@ -74,46 +67,62 @@ class Account(Base):
         session.commit()
         return new_trans
 
+    def check_pass(self, password: str):
+        """ Checks whether given password matches the stored hash.
+
+            :param password: The password to check.
+            :returns: Whether or not the password matches.
+        """
+        return self.verify_hash(password, self.password)
+
+    def change_pass(self, new_password: str):
+        """ Changes this accounts password.
+
+            :param new_password: The password to change to.
+        """
+        self.password = self.hash_pass(new_password)
+        session.commit()
+
+    @staticmethod
+    def hash_pass(password):
+        return pbkdf2_sha256.hash(password)
+
+    @staticmethod
+    def verify_hash(password, pass_hash):
+        return pbkdf2_sha256.verify(password, pass_hash)
+
+
     @classmethod
     def create(cls, name: str, email: str, password: str,
                card: Union[str, None] = None) -> 'Account':
         """ Creates a new Account object.
         """
+        password = cls.hash_pass(password)
         new_user = Account(name=name, email=email, password=email, card=card,
                            _balance="0.00")
         session.add(new_user)
         session.commit()
         return new_user
-    ############################################################################
+
 
 class Transaction(Base):
     __tablename__ = 'transactions'
 
-    # SKIP 3 ###################################################################
     _amount = Column('amount', String)
-    ############################################################################
 
-    # SKIP 2 ###################################################################
     account_ID = Column('account_id', Integer, ForeignKey('accounts.id'))
     account = relationship(Account, foreign_keys=account_ID)
-    ############################################################################
 
     def __repr__(self):
         return f'<Transaction \'{self.account.name}\' (${self.amount:,.2f})>'
 
-    # SKIP 3 ###################################################################
     @property
     def amount(self):
         return Decimal(self._amount)
-    ############################################################################
 
 
 engine = create_engine('sqlite:///bank.db')
 Base.prepare(engine, reflect=True)
-
-# UNSKIP 1 #####################################################################
-# Account, Transaction = Base.classes.account, Base.classes.transaction
-################################################################################
 
 session = Session(engine)
 
