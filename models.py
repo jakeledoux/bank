@@ -27,6 +27,16 @@ class User(Base):
         return Decimal(self._balance)
     ############################################################################
 
+    # SKIP 4 ###################################################################
+    @classmethod
+    def create(cls, name, email, password, card=None):
+        new_user = User(name=name, email=email, password=email, card=card,
+                        _balance="0.00")
+        session.add(new_user)
+        session.commit()
+        return new_user
+    ############################################################################
+
 class Transaction(Base):
     __tablename__ = 'transactions'
 
@@ -58,5 +68,5 @@ Base.prepare(engine, reflect=True)
 
 session = Session(engine)
 
-jake, ishai = session.query(User).all()
-print(jake, ishai)
+jake, ishai, chris = users = session.query(User).all()
+print(*users)
