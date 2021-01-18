@@ -29,6 +29,16 @@ class Account(Base):
         """ Gets this user's balance as a Decimal object.
         """
         return Decimal(self._balance)
+
+    @balance.setter
+    def balance(self, value: Decimal):
+        """ Set's this user's balance. Does not commit to DB.
+        """
+        if isinstance(value, Decimal):
+            value = f'{value:.2f}'
+            self._balance = value
+            return True
+        raise TypeError('Account.balance must be of type string or Decimal.')
     ############################################################################
 
     # SKIP 4 ###################################################################
