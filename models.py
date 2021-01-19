@@ -161,7 +161,7 @@ class Account(Base):
         session.commit()
         return new_trans
 
-    def check_pass(self, password: str):
+    def check_pass(self, password: str) -> bool:
         """ Checks whether given password matches the stored hash.
 
             :param password: The password to check.
@@ -178,11 +178,23 @@ class Account(Base):
         session.commit()
 
     @staticmethod
-    def hash_pass(password):
+    def hash_pass(password: str) -> str:
+        """ Salts and hashes a password.
+
+            :param password: The string to hash.
+            :returns: The hashed password.
+        """
         return pbkdf2_sha256.hash(password)
 
     @staticmethod
-    def verify_hash(password, pass_hash):
+    def verify_hash(password: str, pass_hash: str) -> bool:
+        """ Verifies whether the string matches the hash.
+
+            :param password: The string to check.
+            :param hash: The hash to check.
+
+            :returs: Whether the string and hash match.
+        """
         return pbkdf2_sha256.verify(password, pass_hash)
 
     @staticmethod
