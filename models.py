@@ -48,6 +48,82 @@ class Account(Base):
             return True
         return False
 
+    def deposit(self, amount: Decimal):
+        """ Deposit funds into account. (For ATMs)
+
+            :param amount: The amount to deposit.
+        """
+        if amount > 0:
+            self.balance += Decimal
+            self.log_transaction(amount, 'ATM Deposit')
+        else:
+            raise ValueError('Cannot deposit negative funds.')
+
+    def withdraw(self, amount: Decimal):
+        """ Withdraw funds from account. (For ATMs)
+
+            :param amount: The amount to withdraw.
+        """
+        if amount > 0:
+            if amount <= self.balance:
+                self.balance -= Decimal
+                self.log_transaction(-amount, 'ATM Withdraw')
+            else:
+                raise ValueError('Amount exceeds current account balance.')
+        else:
+            raise ValueError('Cannot withdraw negative funds.')
+
+    def charge_card(self, amount: Decimal, card_number: str):
+        """ Request funds be transferred from another account. Useful for
+            businesses and shops that need to take funds from customers.
+
+            :param amount: The amount to recieve.
+            :param card_number: The recipient's public card number.
+        """
+        if amount > 0:
+            # Lookup recipient by card number
+            recipient = session.query(Account) \
+                    .filter_by(card=card_number).first()
+            if recipient:
+                if amount <= recipient.balance:
+                    # Transfer funds
+                    recipient.balance -= amount
+                    self.balance += amount
+                    # Log transfers
+                    recipient.log_transaction(-amount, self.name)
+                    self.log_transaction(amount, recipient.name)
+                else:
+                    raise ValueError('Amount exceeds current balance.')
+            else:
+                raise ValueError('No account with given card number.')
+        else:
+            raise ValueError('Cannot request negative funds.')
+
+    def send_funds(self, amount: Decimal, card_number: str):
+        """ Transfer funds from this account to another.
+
+            :param amount: The amount to send.
+            :param card_number: The recipient's public card number.
+        """
+        if amount > 0:
+            if amount <= self.balance:
+                # Lookup recipient by card number
+                recipient = session.query(Account) \
+                        .filter_by(card=card_number).first()
+                if recipient:
+                    # Transfer funds
+                    recipient.balance += amount
+                    self.balance -= amount
+                    # Log transfers
+                    recipient.log_transaction(amount, self.name)
+                    self.log_transaction(-amount, recipient.name)
+                else:
+                    raise ValueError('No account with given card number.')
+            else:
+                raise ValueError('Amount exceeds current balance.')
+        else:
+            raise ValueError('Cannot send negative funds.')
+
     def log_transaction(self, amount: Decimal, recipient: str, date=None) \
             -> 'Transaction':
         """ Creates a new transaction object belonging to this user. This method
