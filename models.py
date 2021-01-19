@@ -1,5 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
+from exceptions import AccountNotFoundError, InsufficientBalanceError
 from passlib.hash import pbkdf2_sha256
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import relationship, Session
@@ -71,7 +72,9 @@ class Account(Base):
                 self.log_transaction(-amount, 'ATM Withdraw')
                 session.commit()
             else:
-                raise ValueError('Amount exceeds current account balance.')
+                raise InsufficentBalanceError(
+                    'Amount exceeds current account balance.'
+                )
         else:
             raise ValueError('Cannot withdraw negative funds.')
 
@@ -96,9 +99,13 @@ class Account(Base):
                     self.log_transaction(amount, recipient.name)
                     session.commit()
                 else:
-                    raise ValueError('Amount exceeds current balance.')
+                    raise InsufficentBalanceError(
+                        'Amount exceeds current account balance.'
+                    )
             else:
-                raise ValueError('No account with given card number.')
+                raise AccountNotFoundError(
+                    'No account with given card number.'
+                )
         else:
             raise ValueError('Cannot request negative funds.')
 
@@ -122,9 +129,13 @@ class Account(Base):
                     self.log_transaction(-amount, recipient.name)
                     session.commit()
                 else:
-                    raise ValueError('No account with given card number.')
+                    raise AccountNotFoundError(
+                        'No account with given card number.'
+                    )
             else:
-                raise ValueError('Amount exceeds current balance.')
+                raise InsufficentBalanceError(
+                    'Amount exceeds current account balance.'
+                )
         else:
             raise ValueError('Cannot send negative funds.')
 
