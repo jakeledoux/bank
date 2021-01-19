@@ -72,7 +72,7 @@ class Account(Base):
                 self.log_transaction(-amount, 'ATM Withdraw')
                 session.commit()
             else:
-                raise InsufficentBalanceError(
+                raise InsufficientBalanceError(
                     'Amount exceeds current account balance.'
                 )
         else:
@@ -99,7 +99,7 @@ class Account(Base):
                     self.log_transaction(amount, recipient.name)
                     session.commit()
                 else:
-                    raise InsufficentBalanceError(
+                    raise InsufficientBalanceError(
                         'Amount exceeds current account balance.'
                     )
             else:
@@ -133,7 +133,7 @@ class Account(Base):
                         'No account with given card number.'
                     )
             else:
-                raise InsufficentBalanceError(
+                raise InsufficientBalanceError(
                     'Amount exceeds current account balance.'
                 )
         else:
