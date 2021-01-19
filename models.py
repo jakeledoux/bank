@@ -54,8 +54,9 @@ class Account(Base):
             :param amount: The amount to deposit.
         """
         if amount > 0:
-            self.balance += Decimal
+            self.balance += amount
             self.log_transaction(amount, 'ATM Deposit')
+            session.commit()
         else:
             raise ValueError('Cannot deposit negative funds.')
 
@@ -66,8 +67,9 @@ class Account(Base):
         """
         if amount > 0:
             if amount <= self.balance:
-                self.balance -= Decimal
+                self.balance -= amount
                 self.log_transaction(-amount, 'ATM Withdraw')
+                session.commit()
             else:
                 raise ValueError('Amount exceeds current account balance.')
         else:
@@ -92,6 +94,7 @@ class Account(Base):
                     # Log transfers
                     recipient.log_transaction(-amount, self.name)
                     self.log_transaction(amount, recipient.name)
+                    session.commit()
                 else:
                     raise ValueError('Amount exceeds current balance.')
             else:
@@ -117,6 +120,7 @@ class Account(Base):
                     # Log transfers
                     recipient.log_transaction(amount, self.name)
                     self.log_transaction(-amount, recipient.name)
+                    session.commit()
                 else:
                     raise ValueError('No account with given card number.')
             else:
@@ -138,7 +142,8 @@ class Account(Base):
         """
         date = date or datetime.utcnow()
         new_trans = Transaction(_amount=str(amount), recipient=recipient,
-                                account=self, date=date)
+                                account=self, date=date,
+                                balance=str(self.balance))
         session.add(new_trans)
         session.commit()
         return new_trans
