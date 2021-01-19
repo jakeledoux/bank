@@ -60,7 +60,7 @@ class Account(Base):
             self.log_transaction(amount, 'ATM Deposit')
             session.commit()
         else:
-            raise ValueError('Cannot deposit negative funds.')
+            raise ValueError('Cannot deposit negative/zero funds.')
 
     def withdraw(self, amount: Decimal):
         """ Withdraw funds from account. (For ATMs)
@@ -77,7 +77,7 @@ class Account(Base):
                     'Amount exceeds current account balance.'
                 )
         else:
-            raise ValueError('Cannot withdraw negative funds.')
+            raise ValueError('Cannot withdraw negative/zero funds.')
 
     def charge_card(self, amount: Decimal, card_number: str):
         """ Request funds be transferred from another account. Useful for
@@ -108,7 +108,7 @@ class Account(Base):
                     'No account with given card number.'
                 )
         else:
-            raise ValueError('Cannot request negative funds.')
+            raise ValueError('Cannot request negative/zero funds.')
 
     def send_funds(self, amount: Decimal, public_key: str):
         """ Transfer funds from this account to another.
@@ -138,7 +138,7 @@ class Account(Base):
                     'Amount exceeds current account balance.'
                 )
         else:
-            raise ValueError('Cannot send negative funds.')
+            raise ValueError('Cannot send negative/zero funds.')
 
     def log_transaction(self, amount: Decimal, recipient: str, date=None) \
             -> 'Transaction':
