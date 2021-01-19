@@ -6,7 +6,7 @@ from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import relationship, Session
 from sqlalchemy import create_engine, Column, ForeignKey, Integer, String
 from random import randrange
-from typing import Union
+from typing import Optional
 
 Base = automap_base()
 
@@ -198,7 +198,7 @@ class Account(Base):
 
     @classmethod
     def create(cls, name: str, email: str, password: str,
-               card: Union[str, None] = None) -> 'Account':
+               card: Optional[str] = None) -> 'Account':
         """ Creates a new Account object.
         """
         password = cls.hash_pass(password)
