@@ -3,12 +3,12 @@ from typing import Callable, Optional
 
 
 def calc_luhn(number: str):
-    ''' Calculates the check digit for a given number using the Luhn Algorithm.
+    """ Calculates the check digit for a given number using the Luhn Algorithm.
 
         :param number: The number to check for as a string.
 
         :returns: The calculated check digit.
-    '''
+    """
     doubled = list(number)
     doubled[1::2] = [str(int(n) * 2) for n in doubled[1::2]]
     summed = [sum([int(c) for c in n]) for n in doubled]
@@ -28,7 +28,7 @@ def verify_luhn(number: str):
     return check_digit == int(number[-1])
 
 
-def gen_number(issuer_number: str, length: int = 16,
+def gen_number(issuer_number: str = '', length: int = 16,
                validator: Optional[Callable[[str], bool]] = None) \
         -> Optional[str]:
     """ Generates a new card number with a valid check digit.

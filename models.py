@@ -1,3 +1,4 @@
+import card_number
 from datetime import datetime
 from decimal import Decimal
 from exceptions import AccountNotFoundError, InsufficientBalanceError
@@ -177,17 +178,6 @@ class Account(Base):
         session.commit()
 
     @staticmethod
-    def generate_public_key(length=16):
-        while True:
-            # Generate key (not starting with '0')
-            int_key = (randrange(1, 10),
-                       *[randrange(10) for _ in range(length - 1)])
-            str_key = ''.join(str(n) for n in int_key)
-            # Verify key is unique
-            if not session.query(Account).filter_by(public_key=str_key).count():
-                return str_key
-
-    @staticmethod
     def hash_pass(password):
         return pbkdf2_sha256.hash(password)
 
@@ -195,6 +185,19 @@ class Account(Base):
     def verify_hash(password, pass_hash):
         return pbkdf2_sha256.verify(password, pass_hash)
 
+    @staticmethod
+    def gen_card_number(prefix: str = '') -> str:
+        """ Generates a unique card number and validates against the database.
+
+            :param prefix: Optional issuer number prefix.
+            :returns: New card number.
+        """
+        new_number = card_number.gen_number(
+            validator=lambda n: not session.query(Account) \
+            .filter_by(public_key=n).count()
+        )
+
+        return new_number
 
     @classmethod
     def create(cls, name: str, email: str, password: str,
@@ -202,7 +205,7 @@ class Account(Base):
         """ Creates a new Account object.
         """
         password = cls.hash_pass(password)
-        public_key = Account.generate_public_key()
+        public_key = Account.gen_card_number()
         new_user = Account(name=name, email=email, password=password, card=card,
                            _balance="0.00", public_key=public_key)
         session.add(new_user)
