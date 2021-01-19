@@ -79,7 +79,7 @@ class Account(Base):
                card: Union[str, None] = None) -> 'Account':
         """ Creates a new Account object.
         """
-        new_user = Account(name=name, email=email, password=email, card=card,
+        new_user = Account(name=name, email=email, password=password, card=card,
                            _balance="0.00")
         session.add(new_user)
         session.commit()
