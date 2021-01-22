@@ -2,12 +2,12 @@ import card_number
 from datetime import datetime
 from decimal import Decimal
 from exceptions import AccountNotFoundError, InsufficientBalanceError
-from passlib.hash import pbkdf2_sha256
+from passlib.hash import pbkdf2_sha256 # type: ignore
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import relationship, Session
 from sqlalchemy import create_engine, Column, ForeignKey, Integer, String
 from random import randrange
-from typing import Optional
+from typing import List, Optional
 
 Base = automap_base()
 
@@ -33,8 +33,8 @@ class Account(Base):
         """ Set's this user's balance. Does not commit to DB.
         """
         if isinstance(value, Decimal):
-            value = f'{value:.2f}'
-            self._balance = value
+            value_string = f'{value:.2f}'
+            self._balance = value_string
             return True
         raise TypeError('Account.balance must be of type string or Decimal.')
 
@@ -198,7 +198,7 @@ class Account(Base):
         return pbkdf2_sha256.verify(password, pass_hash)
 
     @staticmethod
-    def gen_card_number(prefix: str = '') -> str:
+    def gen_card_number(prefix: str = '') -> Optional[str]:
         """ Generates a unique card number and validates against the database.
 
             :param prefix: Optional issuer number prefix.
@@ -247,9 +247,6 @@ Base.prepare(engine, reflect=True)
 session = Session(engine)
 
 if __name__ == '__main__':
-    jake: Account
-    ishai: Account
-    chris: Account
-
+    accounts = List[Account]
     jake, ishai, chris = accounts = session.query(Account).all()
     print(*accounts)
