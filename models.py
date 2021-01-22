@@ -117,5 +117,6 @@ Base.prepare(engine, reflect=True)
 
 session = Session(engine)
 
-jake, ishai, chris = accounts = session.query(Account).all()
-print(*accounts)
+if __name__ == '__main__':
+    jake, ishai, chris = accounts = session.query(Account).all()
+    print(*accounts)
